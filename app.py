@@ -16,17 +16,23 @@ def extract_text(image):
 
 
 # Function to extract invoice details using Regex
+import re
+
 def extract_invoice_details(text):
-    # More flexible regex patterns to account for variations in OCR results
+    # Flexible regex patterns to extract details
     invoice_number = re.search(r"Invoice\s*#?\s*[:\-]?\s*([A-Za-z0-9\-]+)", text, re.IGNORECASE)
-    date = re.search(r"Invoice\s*Date\s*[:\-]?\s*([\d]{1,2}\s*[A-Za-z]+\s*[\d]{4})", text, re.IGNORECASE)
-    total_amount = re.search(r"(?:Total\s*Amount|Balance\s*Due|Total)\s*[:\-]?\s*\$?([\d,]+\.\d{2})", text, re.IGNORECASE)
+    date = re.search(r"(?:Invoice\s*Date|Date)\s*[:\-]?\s*([\d]{1,2}\s*[A-Za-z]+\s*[\d]{4}|\d{4}[-/]\d{2}[-/]\d{2})", text, re.IGNORECASE)
+    total_amount = re.search(r"(?:Total\s*Amount|Balance\s*Due|Total)\s*[:\-]?\s*\$?\s*([\d,]+\.\d{2})", text, re.IGNORECASE)
+
+    # Add currency to total amount
+    total_amount_value = f"${total_amount.group(1)}" if total_amount else "Not found"
 
     return {
         "Invoice Number": invoice_number.group(1) if invoice_number else "Not found",
         "Date": date.group(1) if date else "Not found",
-        "Total Amount": total_amount.group(1) if total_amount else "Not found"
+        "Total Amount": total_amount_value
     }
+
 
 # Streamlit App
 def main():
