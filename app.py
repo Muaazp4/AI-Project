@@ -9,16 +9,18 @@ reader = easyocr.Reader(['en'])
 
 # Function to extract text using EasyOCR
 def extract_text(image):
-    # Convert PIL image to NumPy array for EasyOCR
     image_np = np.array(image)
     result = reader.readtext(image_np)
-    return " ".join([item[1] for item in result])
+    text = " ".join([item[1] for item in result])
+    return text.upper()  # Convert text to uppercase for consistent matching
+
 
 # Function to extract invoice details using Regex
 def extract_invoice_details(text):
-    invoice_number = re.search(r"Invoice\s*Number:\s*(\S+)", text, re.IGNORECASE)
-    date = re.search(r"Date:\s*([\d/.-]+)", text, re.IGNORECASE)
-    total_amount = re.search(r"Total:\s*\$?([\d,]+\.\d{2})", text, re.IGNORECASE)
+    # More flexible regex patterns to account for variations in OCR results
+    invoice_number = re.search(r"Invoice\s*#?\s*[:\-]?\s*([A-Za-z0-9\-]+)", text, re.IGNORECASE)
+    date = re.search(r"Invoice\s*Date\s*[:\-]?\s*([\d]{1,2}\s*[A-Za-z]+\s*[\d]{4})", text, re.IGNORECASE)
+    total_amount = re.search(r"(?:Total\s*Amount|Balance\s*Due|Total)\s*[:\-]?\s*\$?([\d,]+\.\d{2})", text, re.IGNORECASE)
 
     return {
         "Invoice Number": invoice_number.group(1) if invoice_number else "Not found",
