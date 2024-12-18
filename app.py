@@ -33,7 +33,7 @@ def main():
 
     if uploaded_file:
         # Display uploaded image
-        st.image(uploaded_file, caption="Uploaded Invoice", use_column_width=True)
+        st.image(uploaded_file, caption="Uploaded Invoice", use_container_width=True)
 
         # Extract text
         with st.spinner("Extracting text..."):
