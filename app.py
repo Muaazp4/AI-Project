@@ -9,22 +9,35 @@ reader = easyocr.Reader(['en'])
 
 # Function to extract text using EasyOCR
 def extract_text(image):
+    # Convert the image to a NumPy array for EasyOCR
     image_np = np.array(image)
     result = reader.readtext(image_np)
+    
+    # Join detected text into a single string
     text = " ".join([item[1] for item in result])
-    return text.upper()  # Convert text to uppercase for consistent matching
-
+    
+    # OCR cleanup: fix common misreads
+    text = text.replace("o", "0")  # Replace lowercase 'o' with zero '0'
+    text = text.replace("O", "0")  # Replace uppercase 'O' with zero '0'
+    text = text.replace("l", "1")  # Replace lowercase 'l' with one '1'
+    text = text.replace("I", "1")  # Replace uppercase 'I' with one '1'
+    
+    return text.upper()  # Return cleaned and uppercase text
 
 # Function to extract invoice details using Regex
 import re
 
 def extract_invoice_details(text):
-    # Flexible regex patterns to extract details
+    # Improved regex for invoice details
     invoice_number = re.search(r"Invoice\s*#?\s*[:\-]?\s*([A-Za-z0-9\-]+)", text, re.IGNORECASE)
-    date = re.search(r"(?:Invoice\s*Date|Date)\s*[:\-]?\s*([\d]{1,2}\s*[A-Za-z]+\s*[\d]{4}|\d{4}[-/]\d{2}[-/]\d{2})", text, re.IGNORECASE)
+
+    # Flexible date matching: e.g., "05 Aug 2024", "2024-08-05", "08/05/2024"
+    date = re.search(r"(\b\d{1,2}[\s/-][A-Za-z]{3}[\s/-]\d{4}\b|\b\d{4}[\s/-]\d{2}[\s/-]\d{2}\b)", text)
+
+    # Match Total Amount with optional currency symbol
     total_amount = re.search(r"(?:Total\s*Amount|Balance\s*Due|Total)\s*[:\-]?\s*\$?\s*([\d,]+\.\d{2})", text, re.IGNORECASE)
 
-    # Add currency to total amount
+    # Add currency to total amount if found
     total_amount_value = f"${total_amount.group(1)}" if total_amount else "Not found"
 
     return {
