@@ -2,13 +2,16 @@ import streamlit as st
 from PIL import Image
 import easyocr
 import re
+import numpy as np
 
 # Initialize EasyOCR Reader
 reader = easyocr.Reader(['en'])
 
 # Function to extract text using EasyOCR
 def extract_text(image):
-    result = reader.readtext(image)
+    # Convert PIL image to NumPy array for EasyOCR
+    image_np = np.array(image)
+    result = reader.readtext(image_np)
     return " ".join([item[1] for item in result])
 
 # Function to extract invoice details using Regex
@@ -32,12 +35,15 @@ def main():
     uploaded_file = st.file_uploader("Upload Invoice (Image)", type=["png", "jpg", "jpeg"])
 
     if uploaded_file:
+        # Open the image using PIL
+        image = Image.open(uploaded_file)
+
         # Display uploaded image
-        st.image(uploaded_file, caption="Uploaded Invoice", use_container_width=True)
+        st.image(image, caption="Uploaded Invoice", use_container_width=True)
 
         # Extract text
         with st.spinner("Extracting text..."):
-            extracted_text = extract_text(uploaded_file)
+            extracted_text = extract_text(image)
 
         # Display extracted text
         st.subheader("Extracted Text")
